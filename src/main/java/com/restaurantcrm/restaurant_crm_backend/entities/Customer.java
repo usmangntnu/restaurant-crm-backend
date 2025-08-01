@@ -44,4 +44,8 @@ public class Customer {
 
   @Size(max = 1000)
   private String notes;
+
+  @Enumerated(EnumType.STRING)
+  @Column(nullable = false)
+  private MichelinStatus michelinStatus = MichelinStatus.REGULAR;
 }
