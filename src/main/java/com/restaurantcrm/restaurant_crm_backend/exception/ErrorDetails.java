@@ -57,29 +57,4 @@ public class ErrorDetails {
    * Only populated for validation errors.
    */
   private Map<String, String> validationErrors;
-
-  /**
-   * Creates a basic error response without validation errors or stack trace.
-   *
-   * @param timestamp     the time when the error occurred
-   * @param status        the HTTP status code
-   * @param error         the HTTP status message
-   * @param message       the error message
-   * @param path          the path of the request that caused the error
-   * @param exceptionType the type of exception thrown
-   */
-  public ErrorDetails(
-      LocalDateTime timestamp,
-      int status,
-      String error,
-      String message,
-      String path,
-      String exceptionType) {
-    this.timestamp = timestamp;
-    this.status = status;
-    this.error = error;
-    this.message = message;
-    this.path = path;
-    this.exceptionType = exceptionType;
-  }
 }
