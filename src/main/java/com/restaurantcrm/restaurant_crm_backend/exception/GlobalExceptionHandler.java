@@ -113,7 +113,7 @@ public class GlobalExceptionHandler {
    */
   @ExceptionHandler(ResourceNotFoundException.class)
   public ResponseEntity<ErrorDetails> handleResourceNotFound(@NonNull ResourceNotFoundException ex, HttpServletRequest request) {
-    return buildErrorResponse(CustomErrorMessage.CUSTOMER_NOT_FOUND, ex, request);
+    return buildErrorResponse(HttpStatus.NOT_FOUND, ex, request);
   }
 
   /**
