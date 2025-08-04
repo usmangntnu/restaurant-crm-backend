@@ -83,7 +83,7 @@ jobs:
               break
             fi
             echo "⏳ Waiting for app to start... (attempt $i/30)"
-            sleep 10
+            sleep 2
           done
           
           # Final check
