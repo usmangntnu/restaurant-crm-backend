@@ -59,11 +59,6 @@ public class ErrorDetails {
   private Map<String, String> validationErrors;
 
   /**
-   * The stack trace of the error (included only in non-production environments).
-   */
-  private String stackTrace;
-
-  /**
    * Creates a basic error response without validation errors or stack trace.
    *
    * @param timestamp     the time when the error occurred
