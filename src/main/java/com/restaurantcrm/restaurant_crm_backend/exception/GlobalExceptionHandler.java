@@ -15,18 +15,23 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Global exception handler for REST API errors in the restaurant CRM backend.
+ * Global exception handler for handling various exceptions across the restaurant CRM backend.
+ * <p>
+ * Provides centralized exception handling using {@link RestControllerAdvice}.
+ * Ensures that all errors are returned with a consistent structure without stack traces.
+ * Handles restaurant-specific operations, customer management, and validation errors.
+ * </p>
  */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
   /**
-   * Creates an error response entity using predefined error messages.
+   * Creates an error response entity for exceptions with a predefined {@link CustomErrorMessage}.
    *
    * @param errorMessage the predefined custom error message
    * @param e            the thrown exception
    * @param request      the current HTTP request
-   * @return a structured ResponseEntity containing ErrorDetails
+   * @return a structured {@link ResponseEntity} containing {@link ErrorDetails}
    */
   private ResponseEntity<ErrorDetails> buildErrorResponse(CustomErrorMessage errorMessage, Exception e, HttpServletRequest request) {
     ErrorDetails errorDetails = ErrorDetails.builder()
@@ -41,12 +46,12 @@ public class GlobalExceptionHandler {
   }
 
   /**
-   * Creates an error response entity using HTTP status.
+   * Creates an error response entity for generic exceptions with dynamic {@link HttpStatus}.
    *
    * @param status  the HTTP status to be returned
    * @param e       the thrown exception
    * @param request the current HTTP request
-   * @return a structured ResponseEntity containing ErrorDetails
+   * @return a structured {@link ResponseEntity} containing {@link ErrorDetails}
    */
   private ResponseEntity<ErrorDetails> buildErrorResponse(HttpStatus status, Exception e, HttpServletRequest request) {
     ErrorDetails errorDetails = ErrorDetails.builder()
@@ -61,7 +66,15 @@ public class GlobalExceptionHandler {
   }
 
   /**
-   * Handles validation errors from @Valid annotations.
+   * Handles {@link MethodArgumentNotValidException} for validation errors from @Valid annotations.
+   * <p>
+   * Processes field-level validation failures and returns detailed error information
+   * for each failed validation constraint.
+   * </p>
+   *
+   * @param ex      the thrown validation exception
+   * @param request the current HTTP request
+   * @return a structured {@link ResponseEntity} containing {@link ErrorDetails} with validation errors
    */
   @ExceptionHandler(MethodArgumentNotValidException.class)
   public ResponseEntity<ErrorDetails> handleValidationErrors(@NonNull MethodArgumentNotValidException ex, HttpServletRequest request) {
@@ -78,7 +91,7 @@ public class GlobalExceptionHandler {
         .timestamp(LocalDateTime.now())
         .status(HttpStatus.BAD_REQUEST.value())
         .error(HttpStatus.BAD_REQUEST.getReasonPhrase())
-        .message("Validering feilet")
+        .message("Validation failed for one or more fields")
         .path(request.getRequestURI())
         .exceptionType(ex.getClass().getSimpleName())
         .validationErrors(validationErrors)
@@ -88,7 +101,15 @@ public class GlobalExceptionHandler {
   }
 
   /**
-   * Handles ResourceNotFoundException when a requested resource is not found.
+   * Handles {@link ResourceNotFoundException} when a requested resource is not found.
+   * <p>
+   * Typically occurs when attempting to retrieve customers or other entities
+   * that do not exist in the system.
+   * </p>
+   *
+   * @param ex      the thrown exception
+   * @param request the current HTTP request
+   * @return a structured {@link ResponseEntity} containing {@link ErrorDetails}
    */
   @ExceptionHandler(ResourceNotFoundException.class)
   public ResponseEntity<ErrorDetails> handleResourceNotFound(@NonNull ResourceNotFoundException ex, HttpServletRequest request) {
@@ -96,7 +117,15 @@ public class GlobalExceptionHandler {
   }
 
   /**
-   * Handles database constraint violations like duplicate email/phone.
+   * Handles {@link DataIntegrityViolationException} for database constraint violations.
+   * <p>
+   * Detects specific constraint violations such as duplicate email addresses
+   * or phone numbers and maps them to appropriate error messages.
+   * </p>
+   *
+   * @param ex      the thrown exception
+   * @param request the current HTTP request
+   * @return a structured {@link ResponseEntity} containing {@link ErrorDetails}
    */
   @ExceptionHandler(DataIntegrityViolationException.class)
   public ResponseEntity<ErrorDetails> handleConstraintViolations(@NonNull DataIntegrityViolationException ex, HttpServletRequest request) {
@@ -112,7 +141,15 @@ public class GlobalExceptionHandler {
   }
 
   /**
-   * Handles IllegalArgumentException for invalid method arguments.
+   * Handles {@link IllegalArgumentException} for invalid method arguments.
+   * <p>
+   * Occurs when methods are called with invalid or inappropriate arguments
+   * that don't meet the expected criteria.
+   * </p>
+   *
+   * @param ex      the thrown exception
+   * @param request the current HTTP request
+   * @return a structured {@link ResponseEntity} containing {@link ErrorDetails}
    */
   @ExceptionHandler(IllegalArgumentException.class)
   public ResponseEntity<ErrorDetails> handleIllegalArgumentException(@NonNull IllegalArgumentException ex, HttpServletRequest request) {
@@ -120,7 +157,15 @@ public class GlobalExceptionHandler {
   }
 
   /**
-   * Handles IllegalStateException for invalid state operations.
+   * Handles {@link IllegalStateException} for invalid state operations.
+   * <p>
+   * Occurs when operations are attempted on objects that are in an
+   * inappropriate state for the requested operation.
+   * </p>
+   *
+   * @param ex      the thrown exception
+   * @param request the current HTTP request
+   * @return a structured {@link ResponseEntity} containing {@link ErrorDetails}
    */
   @ExceptionHandler(IllegalStateException.class)
   public ResponseEntity<ErrorDetails> handleIllegalStateException(@NonNull IllegalStateException ex, HttpServletRequest request) {
@@ -128,7 +173,15 @@ public class GlobalExceptionHandler {
   }
 
   /**
-   * Catch-all handler for any unhandled exceptions.
+   * Handles any unhandled exceptions that are not caught by specific handlers.
+   * <p>
+   * Serves as a catch-all to ensure that all exceptions result in a
+   * consistent error response format. Returns a generic internal server error.
+   * </p>
+   *
+   * @param ex      the thrown exception
+   * @param request the current HTTP request
+   * @return a structured {@link ResponseEntity} containing {@link ErrorDetails}
    */
   @ExceptionHandler(Exception.class)
   public ResponseEntity<ErrorDetails> handleGenericException(@NonNull Exception ex, HttpServletRequest request) {
