@@ -78,21 +78,21 @@ jobs:
         run: |
           echo "Waiting for application to start..."
           for i in {1..45}; do
-            if curl -f -u admin:admin http://localhost:8080/actuator/health > /dev/null 2>&1; then
+            if curl -f http://localhost:8080/actuator/health > /dev/null 2>&1; then
               echo "✅ Application is ready!"
               break
             fi
             echo "⏳ Waiting for app to start... (attempt $i/45)"
             sleep 3
           done
-          
+
           # Final check with debugging
-          if ! curl -f -u admin:admin http://localhost:8080/actuator/health > /dev/null 2>&1; then
+          if ! curl -f http://localhost:8080/actuator/health > /dev/null 2>&1; then
             echo "❌ App failed to start. Debugging..."
             echo "Checking if port 8080 is open:"
             netstat -tulpn | grep :8080 || echo "Port 8080 not found"
             echo "Checking direct curl to health endpoint:"
-            curl -v -u admin:admin http://localhost:8080/actuator/health || true
+            curl -v http://localhost:8080/actuator/health || true
             echo "Application logs:"
             cat app.log
             exit 1
@@ -101,7 +101,7 @@ jobs:
       - name: Fetch OpenAPI spec
         run: |
           echo "Fetching OpenAPI specification..."
-          curl -v -u admin:admin http://localhost:8080/v3/api-docs -o target/openapi.json
+          curl -v http://localhost:8080/v3/api-docs -o target/openapi.json
 
       - name: Stop Spring Boot app
         if: always()
