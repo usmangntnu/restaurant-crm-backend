@@ -27,13 +27,13 @@ public class Customer {
 
   @NotBlank(message = "Telefonnummer må oppgis")
   @Size(max = 30)
-  @Column(nullable = false)
+  @Column(nullable = false, unique = true)
   private String phone;
 
   @Email(message = "Ugyldig e-postadresse")
   @NotBlank(message = "E-post må oppgis")
   @Size(max = 100)
-  @Column(nullable = false, unique = false) // Sett ev. unique=true hvis det er krav
+  @Column(nullable = false, unique = true)
   private String email;
 
   @Size(max = 255)
@@ -44,4 +44,8 @@ public class Customer {
 
   @Size(max = 1000)
   private String notes;
+
+  @Enumerated(EnumType.STRING)
+  @Column(nullable = false)
+  private MichelinStatus michelinStatus = MichelinStatus.REGULAR;
 }

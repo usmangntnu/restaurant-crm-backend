@@ -2,9 +2,14 @@ name: CI/CD for Spring Boot CRM
 
 on:
   push:
-    branches: [ main, dev ]
+    branches:
+      - main
+      - dev
+      - 'feature/**'
   pull_request:
-    branches: [ main, dev ]
+    branches:
+      - main
+      - dev
 
 jobs:
   build-test:
@@ -45,7 +50,7 @@ jobs:
   generate-openapi:
     runs-on: ubuntu-latest
     needs: build-test
-    if: github.ref == 'refs/heads/dev'
+    if: github.ref == 'refs/heads/dev' || github.event.pull_request.base.ref == 'dev'
 
     steps:
       - name: Checkout repo
@@ -57,15 +62,53 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
 
+      - name: Cache Maven packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-maven
+
       - name: Start Spring Boot app in background
         run: |
-          nohup mvn spring-boot:run -Dspring-boot.run.profiles=test -DskipTests &
+          nohup mvn spring-boot:run -Dspring-boot.run.profiles=test -DskipTests > app.log 2>&1 &
+          echo $! > app.pid
 
-      - name: Wait for app to start
-        run: sleep 20
+      - name: Wait for app to start with health check
+        run: |
+          echo "Waiting for application to start..."
+          for i in {1..45}; do
+            if curl -f http://localhost:8080/actuator/health > /dev/null 2>&1; then
+              echo "✅ Application is ready!"
+              break
+            fi
+            echo "⏳ Waiting for app to start... (attempt $i/45)"
+            sleep 3
+          done
+
+          # Final check with debugging
+          if ! curl -f http://localhost:8080/actuator/health > /dev/null 2>&1; then
+            echo "❌ App failed to start. Debugging..."
+            echo "Checking if port 8080 is open:"
+            netstat -tulpn | grep :8080 || echo "Port 8080 not found"
+            echo "Checking direct curl to health endpoint:"
+            curl -v http://localhost:8080/actuator/health || true
+            echo "Application logs:"
+            cat app.log
+            exit 1
+          fi
 
       - name: Fetch OpenAPI spec
-        run: curl http://localhost:8080/v3/api-docs -o target/openapi.json
+        run: |
+          echo "Fetching OpenAPI specification..."
+          curl -v http://localhost:8080/v3/api-docs -o target/openapi.json
+
+      - name: Stop Spring Boot app
+        if: always()
+        run: |
+          if [ -f app.pid ]; then
+            kill $(cat app.pid) || true
+          fi
 
       - name: Upload OpenAPI spec
         uses: actions/upload-artifact@v4
