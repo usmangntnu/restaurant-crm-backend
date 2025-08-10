@@ -1,6 +1,5 @@
 package com.restaurantcrm.restaurant_crm_backend.config;
 
-import org.springframework.boot.actuate.autoconfigure.security.servlet.EndpointRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -13,6 +12,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.header.writers.frameoptions.XFrameOptionsHeaderWriter;
 
 @Configuration
 @EnableWebSecurity
@@ -39,7 +39,7 @@ public class SecurityConfig {
             .disable()
         )
         .headers(headers -> headers
-            .frameOptions().disable()
+            .addHeaderWriter(new XFrameOptionsHeaderWriter(XFrameOptionsHeaderWriter.XFrameOptionsMode.SAMEORIGIN))
         );
 
     return http.build();
@@ -56,7 +56,9 @@ public class SecurityConfig {
             .anyRequest().permitAll()
         )
         .csrf(csrf -> csrf.disable())
-        .headers(headers -> headers.frameOptions().disable());
+        .headers(headers -> headers
+            .addHeaderWriter(new XFrameOptionsHeaderWriter(XFrameOptionsHeaderWriter.XFrameOptionsMode.DENY))
+        );
 
     return http.build();
   }
